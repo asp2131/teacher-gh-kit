@@ -14,6 +14,10 @@ defmodule Gitclass.Application do
       {Phoenix.PubSub, name: Gitclass.PubSub},
       # Start the Finch HTTP client for sending emails
       {Finch, name: Gitclass.Finch},
+      # Start the Finch HTTP client for GitHub API
+      {Finch, name: GitclassFinch},
+      # Start Oban background job processor
+      {Oban, Application.fetch_env!(:gitclass, Oban)},
       # Start a worker by calling: Gitclass.Worker.start_link(arg)
       # {Gitclass.Worker, arg},
       # Start to serve requests, typically the last entry

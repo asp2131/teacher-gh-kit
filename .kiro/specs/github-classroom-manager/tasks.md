@@ -14,7 +14,7 @@
   - Create user registration/login flow with GitHub profile data storage
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-- [ ] 3. Create core Elixir contexts and business logic
+- [x] 3. Create core Elixir contexts and business logic
   - Implement Accounts context for user management functions
   - Create Classroom context with class and student management functions
   - Build GitHub context for API integration and data fetching
@@ -22,7 +22,7 @@
   - Write comprehensive unit tests for all context functions
   - _Requirements: 2.1, 2.2, 2.3, 3.1, 4.1, 5.1_
 
-- [ ] 4. Set up Oban background job processing system
+- [x] 4. Set up Oban background job processing system
   - Configure Oban with PostgreSQL adapter and job queues
   - Create base job module with common error handling and retry logic
   - Implement job progress tracking and PubSub notification system

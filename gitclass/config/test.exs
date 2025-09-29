@@ -44,3 +44,12 @@ config :ueberauth, Ueberauth,
 config :ueberauth, Ueberauth.Strategy.Github.OAuth,
   client_id: "test_client_id",
   client_secret: "test_client_secret"
+
+# GitHub API Configuration for testing
+config :gitclass,
+  github_token: "test_token_for_mocking"
+
+# Oban Configuration for testing
+config :gitclass, Oban,
+  repo: Gitclass.Repo,
+  testing: :inline

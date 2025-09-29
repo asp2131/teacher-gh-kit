@@ -138,4 +138,14 @@ defmodule Gitclass.Classroom do
     |> order_by([ca], asc: ca.commit_date)
     |> Repo.all()
   end
+
+  @doc """
+  Gets all active classes (classes that have students).
+  """
+  def list_active_classes do
+    Class
+    |> join(:inner, [c], s in ClassStudent, on: c.id == s.class_id)
+    |> distinct([c], c.id)
+    |> Repo.all()
+  end
 end

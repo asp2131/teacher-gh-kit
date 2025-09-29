@@ -1,5 +1,10 @@
 import Config
 
+# Load environment variables from .env file
+if File.exists?(".env") and Code.ensure_loaded?(Dotenv) do
+  Dotenv.load()
+end
+
 # Configure your database
 config :gitclass, Gitclass.Repo,
   username: "akinpound",
@@ -92,3 +97,23 @@ config :ueberauth, Ueberauth,
 config :ueberauth, Ueberauth.Strategy.Github.OAuth,
   client_id: System.get_env("GITHUB_CLIENT_ID") || "your_github_client_id",
   client_secret: System.get_env("GITHUB_CLIENT_SECRET") || "your_github_client_secret"
+
+# GitHub API Configuration
+config :gitclass,
+  github_token: System.get_env("GITHUB_TOKEN")
+
+# Oban Configuration
+config :gitclass, Oban,
+  repo: Gitclass.Repo,
+  plugins: [
+    Oban.Plugins.Pruner,
+    {Oban.Plugins.Cron, crontab: [
+      # Refresh commit data every 2 minutes
+      {"*/2 * * * *", Gitclass.Workers.RefreshCommitsWorker}
+    ]}
+  ],
+  queues: [
+    default: 10,
+    github_api: 5,
+    import: 3
+  ]

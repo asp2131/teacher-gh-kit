@@ -60,7 +60,9 @@ defmodule Gitclass.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
       {:ueberauth, "~> 0.10"},
-      {:ueberauth_github, "~> 0.8"}
+      {:ueberauth_github, "~> 0.8"},
+      {:dotenv, "~> 3.0", only: [:dev, :test]},
+      {:oban, "~> 2.17"}
     ]
   end
 
