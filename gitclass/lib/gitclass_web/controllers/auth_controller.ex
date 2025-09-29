@@ -5,11 +5,6 @@ defmodule GitclassWeb.AuthController do
   alias Gitclass.Accounts
   alias GitclassWeb.UserAuth
 
-  def request(conn, _params) do
-    # This will redirect to GitHub OAuth
-    redirect(conn, external: Ueberauth.Strategy.Helpers.request_url(conn, :github))
-  end
-
   def callback(%{assigns: %{ueberauth_failure: _fails}} = conn, _params) do
     conn
     |> put_flash(:error, "Failed to authenticate with GitHub.")

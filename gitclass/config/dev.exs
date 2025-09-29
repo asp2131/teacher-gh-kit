@@ -1,9 +1,6 @@
 import Config
 
-# Load environment variables from .env file
-if File.exists?(".env") and Code.ensure_loaded?(Dotenv) do
-  Dotenv.load()
-end
+# Environment variables are loaded in config/runtime.exs
 
 # Configure your database
 config :gitclass, Gitclass.Repo,
@@ -94,9 +91,7 @@ config :ueberauth, Ueberauth,
     github: {Ueberauth.Strategy.Github, [default_scope: "user:email,read:user"]}
   ]
 
-config :ueberauth, Ueberauth.Strategy.Github.OAuth,
-  client_id: System.get_env("GITHUB_CLIENT_ID") || "your_github_client_id",
-  client_secret: System.get_env("GITHUB_CLIENT_SECRET") || "your_github_client_secret"
+# GitHub OAuth will be configured in runtime.exs
 
 # GitHub API Configuration
 config :gitclass,
