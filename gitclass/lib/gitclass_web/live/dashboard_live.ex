@@ -68,6 +68,33 @@ defmodule GitclassWeb.DashboardLive do
   end
 
   @impl true
+  def handle_event("delete_class", %{"id" => class_id}, socket) do
+    user = socket.assigns.current_user
+
+    case Classroom.get_class!(class_id) do
+      %{teacher_id: teacher_id} = class when teacher_id == user.id ->
+        case Classroom.delete_class(class) do
+          {:ok, _} ->
+            classes = Classroom.list_classes_for_teacher(user)
+            {:noreply,
+             socket
+             |> assign(:classes, classes)
+             |> put_flash(:info, "Class deleted successfully")}
+
+          {:error, _} ->
+            {:noreply,
+             socket
+             |> put_flash(:error, "Failed to delete class")}
+        end
+
+      _ ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "You don't have permission to delete this class")}
+    end
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="min-h-screen bg-gray-50">
@@ -129,12 +156,11 @@ defmodule GitclassWeb.DashboardLive do
             </button>
 
             <!-- Existing classes -->
-            <.link
-              :for={class <- @classes}
-              navigate={~p"/classes/#{class.id}"}
-              class="block bg-white overflow-hidden shadow rounded-lg card-hover"
-            >
-              <div class="p-6">
+            <div :for={class <- @classes} class="bg-white overflow-hidden shadow rounded-lg card-hover relative">
+              <.link
+                navigate={~p"/classes/#{class.id}"}
+                class="block p-6"
+              >
                 <div class="flex items-center">
                   <div class="flex-shrink-0">
                     <div class="h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center">
@@ -156,8 +182,20 @@ defmodule GitclassWeb.DashboardLive do
                     {class.student_count} {if class.student_count == 1, do: "student", else: "students"}
                   </div>
                 </div>
-              </div>
-            </.link>
+              </.link>
+              <button
+                type="button"
+                phx-click="delete_class"
+                phx-value-id={class.id}
+                data-confirm={"Are you sure you want to delete #{class.name}? This will remove all students and cannot be undone."}
+                class="absolute top-2 right-2 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                title="Delete class"
+              >
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <!-- Empty state -->
