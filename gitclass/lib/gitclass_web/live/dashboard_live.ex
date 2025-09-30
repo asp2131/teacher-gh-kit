@@ -11,11 +11,59 @@ defmodule GitclassWeb.DashboardLive do
     {:ok,
      socket
      |> assign(:classes, classes)
-     |> assign(:page_title, "Dashboard")}
+     |> assign(:page_title, "Dashboard")
+     |> assign(:show_create_modal, false)
+     |> assign(:form, to_form(Classroom.change_class(%Gitclass.Classroom.Class{})))}
   end
 
   @impl true
   def handle_params(_params, _url, socket) do
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_event("show_create_modal", _params, socket) do
+    {:noreply, assign(socket, :show_create_modal, true)}
+  end
+
+  @impl true
+  def handle_event("hide_create_modal", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:show_create_modal, false)
+     |> assign(:form, to_form(Classroom.change_class(%Gitclass.Classroom.Class{})))}
+  end
+
+  @impl true
+  def handle_event("validate_class", %{"class" => class_params}, socket) do
+    changeset =
+      %Gitclass.Classroom.Class{}
+      |> Classroom.change_class(class_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :form, to_form(changeset))}
+  end
+
+  @impl true
+  def handle_event("create_class", %{"class" => class_params}, socket) do
+    user = socket.assigns.current_user
+
+    case Classroom.create_class(user, class_params) do
+      {:ok, class} ->
+        {:noreply,
+         socket
+         |> put_flash(:info, "Class created successfully")
+         |> redirect(to: ~p"/classes/#{class.id}")}
+
+      {:error, changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  @impl true
+  def handle_event("stop_propagation", _params, socket) do
+    # This event is used to stop click propagation in the modal
+    # We don't need to do anything here
     {:noreply, socket}
   end
 
@@ -62,7 +110,11 @@ defmodule GitclassWeb.DashboardLive do
           <!-- Classes grid -->
           <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <!-- Create new class card -->
-            <div class="bg-white overflow-hidden shadow rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors duration-200">
+            <button
+              type="button"
+              phx-click="show_create_modal"
+              class="bg-white overflow-hidden shadow rounded-lg border-2 border-dashed border-gray-300 hover:border-gray-400 transition-colors duration-200 cursor-pointer"
+            >
               <div class="p-6">
                 <div class="flex items-center justify-center h-32">
                   <div class="text-center">
@@ -74,7 +126,7 @@ defmodule GitclassWeb.DashboardLive do
                   </div>
                 </div>
               </div>
-            </div>
+            </button>
 
             <!-- Existing classes -->
             <div :for={class <- @classes} class="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow duration-200">
@@ -100,9 +152,12 @@ defmodule GitclassWeb.DashboardLive do
                       </svg>
                       0 students
                     </div>
-                    <button class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                    <.link
+                      navigate={~p"/classes/#{class.id}"}
+                      class="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+                    >
                       View Class →
-                    </button>
+                    </.link>
                   </div>
                 </div>
               </div>
@@ -117,7 +172,11 @@ defmodule GitclassWeb.DashboardLive do
             <h3 class="mt-2 text-sm font-medium text-gray-900">No classes yet</h3>
             <p class="mt-1 text-sm text-gray-500">Get started by creating your first class.</p>
             <div class="mt-6">
-              <button class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              <button
+                type="button"
+                phx-click="show_create_modal"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
                 <svg class="-ml-1 mr-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
@@ -128,6 +187,59 @@ defmodule GitclassWeb.DashboardLive do
         </div>
       </div>
     </div>
+    <!-- Create Class Modal -->
+    <%= if @show_create_modal do %>
+      <div class="fixed z-10 inset-0 overflow-y-auto" phx-click="hide_create_modal">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+          <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+          <div
+            class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
+            phx-click="stop_propagation"
+          >
+            <div>
+              <h3 class="text-lg leading-6 font-medium text-gray-900">Create New Class</h3>
+              <div class="mt-4">
+                <.form
+                  for={@form}
+                  phx-change="validate_class"
+                  phx-submit="create_class"
+                  class="space-y-4"
+                >
+                  <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">
+                      Class Name
+                    </label>
+                    <.input field={@form[:name]} type="text" required />
+                  </div>
+                  <div>
+                    <label for="term" class="block text-sm font-medium text-gray-700">
+                      Term (Optional)
+                    </label>
+                    <.input field={@form[:term]} type="text" placeholder="e.g., Fall 2024" />
+                  </div>
+                  <div class="mt-5 sm:mt-6 sm:grid sm:grid-cols-2 sm:gap-3 sm:grid-flow-row-dense">
+                    <button
+                      type="submit"
+                      class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm"
+                    >
+                      Create
+                    </button>
+                    <button
+                      type="button"
+                      phx-click="hide_create_modal"
+                      class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </.form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% end %>
     """
   end
 end

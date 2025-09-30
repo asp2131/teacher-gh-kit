@@ -9,6 +9,8 @@ defmodule Gitclass.Workers.ImportStudentsWorker do
 
   alias Gitclass.{Classroom, GitHub}
 
+  defp github_client, do: Application.get_env(:gitclass, :github_client, GitHub)
+
   def execute(%Oban.Job{args: %{"class_id" => class_id, "usernames" => usernames, "job_id" => job_id}}) do
     start_background_job(job_id)
 
@@ -59,7 +61,7 @@ defmodule Gitclass.Workers.ImportStudentsWorker do
   end
 
   defp import_student(class, username) do
-    case GitHub.fetch_user_profile(username) do
+    case github_client().fetch_user_profile(username) do
       {:ok, user_data} ->
         # Add student to class with GitHub data
         student_attrs = %{

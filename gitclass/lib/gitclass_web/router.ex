@@ -47,6 +47,7 @@ defmodule GitclassWeb.Router do
     live_session :require_authenticated_user,
       on_mount: [{GitclassWeb.UserAuth, :ensure_authenticated}] do
       live "/dashboard", DashboardLive, :index
+      live "/classes/:id", ClassLive, :show
     end
   end
 

@@ -10,6 +10,8 @@ defmodule Gitclass.Workers.RefreshCommitsWorker do
 
   alias Gitclass.{Classroom, GitHub}
 
+  defp github_client, do: Application.get_env(:gitclass, :github_client, GitHub)
+
   def execute(%Oban.Job{args: args}) do
     class_id = Map.get(args, "class_id")
 
@@ -69,7 +71,7 @@ defmodule Gitclass.Workers.RefreshCommitsWorker do
   end
 
   defp refresh_student_commits(class_id, student) do
-    case GitHub.fetch_recent_commits(student.student_github_username, 5) do
+    case github_client().fetch_recent_commits(student.student_github_username, 5) do
       {:ok, commits} ->
         # Update last commit timestamp
         last_commit_at = get_latest_commit_time(commits)

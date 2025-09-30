@@ -9,8 +9,10 @@ defmodule Gitclass.Workers.VerifyPagesRepoWorker do
 
   alias Gitclass.{Classroom, GitHub}
 
+  defp github_client, do: Application.get_env(:gitclass, :github_client, GitHub)
+
   def execute(%Oban.Job{args: %{"class_id" => class_id, "username" => username}}) do
-    case GitHub.check_pages_repository(username) do
+    case github_client().check_pages_repository(username) do
       {:ok, %{exists: true} = repo_data} ->
         update_student_pages_repo(class_id, username, repo_data)
         broadcast_repo_update(class_id, username, :verified, repo_data)

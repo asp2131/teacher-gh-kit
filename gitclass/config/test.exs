@@ -47,7 +47,8 @@ config :ueberauth, Ueberauth.Strategy.Github.OAuth,
 
 # GitHub API Configuration for testing
 config :gitclass,
-  github_token: "test_token_for_mocking"
+  github_token: "test_token_for_mocking",
+  github_client: Gitclass.GitHubMock
 
 # Oban Configuration for testing
 config :gitclass, Oban,

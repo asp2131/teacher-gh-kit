@@ -37,8 +37,21 @@ defmodule Gitclass.Classroom do
   Creates a class.
   """
   def create_class(%User{} = teacher, attrs \\ %{}) do
+    # Ensure consistent key types - convert to string keys if attrs uses string keys
+    attrs_with_teacher =
+      if is_map_key(attrs, "name") or is_map_key(attrs, :name) do
+        # If attrs has string keys or atom keys, add teacher_id with matching key type
+        if is_map_key(attrs, "name") do
+          Map.put(attrs, "teacher_id", teacher.id)
+        else
+          Map.put(attrs, :teacher_id, teacher.id)
+        end
+      else
+        Map.put(attrs, :teacher_id, teacher.id)
+      end
+
     %Class{}
-    |> Class.changeset(Map.put(attrs, :teacher_id, teacher.id))
+    |> Class.changeset(attrs_with_teacher)
     |> Repo.insert()
   end
 

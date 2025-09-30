@@ -62,7 +62,8 @@ defmodule Gitclass.MixProject do
       {:ueberauth, "~> 0.10"},
       {:ueberauth_github, "~> 0.8"},
       {:dotenv, "~> 3.0", only: [:dev, :test]},
-      {:oban, "~> 2.17"}
+      {:oban, "~> 2.17"},
+      {:mox, "~> 1.0", only: :test}
     ]
   end
 
