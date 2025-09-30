@@ -30,7 +30,7 @@ defmodule Gitclass.Workers.RefreshCommitsWorker do
 
     results =
       active_classes
-      |> Enum.map(&refresh_class_commits/1)
+      |> Enum.map(fn class -> refresh_class_commits(class.id) end)
       |> Enum.reduce(%{successful: 0, failed: 0}, fn
         {:ok, _}, acc -> %{acc | successful: acc.successful + 1}
         {:error, _}, acc -> %{acc | failed: acc.failed + 1}
@@ -71,26 +71,28 @@ defmodule Gitclass.Workers.RefreshCommitsWorker do
   end
 
   defp refresh_student_commits(class_id, student) do
-    case github_client().fetch_recent_commits(student.student_github_username, 5) do
-      {:ok, commits} ->
+    Logger.info("Fetching latest commit time for student: #{student.student_github_username}")
+
+    # Use simpler Events API to just get latest commit timestamp
+    case github_client().fetch_latest_commit_time(student.student_github_username) do
+      {:ok, nil} ->
+        Logger.info("No recent commits found for #{student.student_github_username}")
+        {:ok, 0}
+
+      {:ok, last_commit_at} ->
+        Logger.info("Found latest commit at #{last_commit_at} for #{student.student_github_username}")
+
         # Update last commit timestamp
-        last_commit_at = get_latest_commit_time(commits)
+        Classroom.update_class_student(student, %{last_commit_at: last_commit_at})
 
-        if last_commit_at do
-          Classroom.update_class_student(student, %{last_commit_at: last_commit_at})
-        end
-
-        # Update commit activity calendar
-        update_commit_activities(class_id, student.student_github_username, commits)
-
+        # Broadcast update for real-time UI
         broadcast_progress("class:#{class_id}:students", %{
           type: :commit_update,
           username: student.student_github_username,
-          last_commit_at: last_commit_at,
-          commit_count: length(commits)
+          last_commit_at: last_commit_at
         })
 
-        {:ok, length(commits)}
+        {:ok, 1}
 
       {:error, :rate_limited} ->
         Logger.warning("Rate limited while fetching commits for #{student.student_github_username}")

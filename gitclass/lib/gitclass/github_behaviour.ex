@@ -10,6 +10,9 @@ defmodule Gitclass.GitHubBehaviour do
   @callback check_pages_repository(username :: String.t()) ::
               {:ok, map()} | {:error, atom()}
 
+  @callback fetch_latest_commit_time(username :: String.t()) ::
+              {:ok, DateTime.t() | nil} | {:error, atom()}
+
   @callback fetch_recent_commits(username :: String.t(), days_back :: integer()) ::
               {:ok, list(map())} | {:error, atom()}
 

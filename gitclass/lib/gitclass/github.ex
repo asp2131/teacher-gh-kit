@@ -119,6 +119,54 @@ defmodule Gitclass.GitHub do
   end
 
   @doc """
+  Fetches the most recent commit/push event for a user.
+  Uses GitHub Events API which is simpler and doesn't require repo enumeration.
+  """
+  def fetch_latest_commit_time(username) when is_binary(username) do
+    if not valid_username?(username) do
+      {:error, :invalid_username}
+    else
+      url = "#{@github_api_base}/users/#{username}/events/public?per_page=100"
+
+      case make_request(url) do
+        {:ok, %{status: 200, body: body}} ->
+          case Jason.decode(body) do
+            {:ok, events} when is_list(events) ->
+              # Find the most recent PushEvent
+              latest_push =
+                events
+                |> Enum.filter(fn event -> event["type"] == "PushEvent" end)
+                |> Enum.map(fn event -> event["created_at"] end)
+                |> Enum.filter(& &1)
+                |> Enum.sort(:desc)
+                |> List.first()
+
+              if latest_push do
+                case DateTime.from_iso8601(latest_push) do
+                  {:ok, datetime, _} -> {:ok, datetime}
+                  _ -> {:ok, nil}
+                end
+              else
+                {:ok, nil}
+              end
+
+            {:error, _} ->
+              {:error, :invalid_response}
+          end
+
+        {:ok, %{status: 404}} ->
+          {:error, :user_not_found}
+
+        {:ok, %{status: 403}} ->
+          {:error, :rate_limited}
+
+        {:error, _} ->
+          {:error, :network_error}
+      end
+    end
+  end
+
+  @doc """
   Fetches recent commit activity for a user's repositories.
   """
   def fetch_recent_commits(username, days_back \\ 5) when is_binary(username) and is_integer(days_back) do

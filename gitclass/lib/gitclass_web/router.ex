@@ -48,6 +48,7 @@ defmodule GitclassWeb.Router do
       on_mount: [{GitclassWeb.UserAuth, :ensure_authenticated}] do
       live "/dashboard", DashboardLive, :index
       live "/classes/:id", ClassLive, :show
+      live "/classes/:class_id/import", ImportLive, :new
     end
   end
 

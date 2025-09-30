@@ -18,6 +18,9 @@ defmodule GitclassWeb.ClassLive do
           Phoenix.PubSub.subscribe(Gitclass.PubSub, "class:#{class_id}:students")
           Phoenix.PubSub.subscribe(Gitclass.PubSub, "class:#{class_id}:commits")
           Phoenix.PubSub.subscribe(Gitclass.PubSub, "class:#{class_id}:import")
+
+          # Automatically fetch latest commit data on page load
+          Jobs.schedule_commit_refresh(class_id)
         end
 
         {:ok,
@@ -46,7 +49,9 @@ defmodule GitclassWeb.ClassLive do
 
   @impl true
   def handle_event("show_import_modal", _params, socket) do
-    {:noreply, assign(socket, :show_import_modal, true)}
+    # Redirect to the dedicated import page instead of showing a modal
+    class = socket.assigns.class
+    {:noreply, push_navigate(socket, to: ~p"/classes/#{class.id}/import")}
   end
 
   @impl true
