@@ -9,11 +9,14 @@ defmodule Gitclass.Classroom do
   alias Gitclass.Accounts.User
 
   @doc """
-  Returns the list of classes for a teacher.
+  Returns the list of classes for a teacher with student count.
   """
   def list_classes_for_teacher(%User{} = teacher) do
     Class
     |> where([c], c.teacher_id == ^teacher.id)
+    |> join(:left, [c], s in ClassStudent, on: c.id == s.class_id)
+    |> group_by([c], c.id)
+    |> select([c, s], %{c | student_count: count(s.id)})
     |> order_by([c], desc: c.inserted_at)
     |> Repo.all()
   end

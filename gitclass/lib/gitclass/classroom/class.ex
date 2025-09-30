@@ -8,6 +8,7 @@ defmodule Gitclass.Classroom.Class do
   schema "classes" do
     field :name, :string
     field :term, :string
+    field :student_count, :integer, virtual: true, default: 0
 
     belongs_to :teacher, Gitclass.Accounts.User, type: :binary_id
     has_many :students, Gitclass.Classroom.ClassStudent
