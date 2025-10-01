@@ -16,5 +16,27 @@ config :swoosh, local: false
 # Do not print debug messages in production
 config :logger, level: :info
 
+# Configure Ueberauth for GitHub OAuth
+config :ueberauth, Ueberauth,
+  providers: [
+    github: {Ueberauth.Strategy.Github, [default_scope: "user:email,read:user"]}
+  ]
+
+# Oban Configuration for production
+config :gitclass, Oban,
+  repo: Gitclass.Repo,
+  plugins: [
+    Oban.Plugins.Pruner,
+    {Oban.Plugins.Cron, crontab: [
+      # Refresh commit data every 2 minutes
+      {"*/2 * * * *", Gitclass.Workers.RefreshCommitsWorker}
+    ]}
+  ],
+  queues: [
+    default: 10,
+    github_api: 5,
+    import: 3
+  ]
+
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.

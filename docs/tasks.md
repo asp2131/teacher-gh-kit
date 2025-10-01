@@ -39,7 +39,7 @@
   - Write comprehensive tests with mocked API responses
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 5.1, 5.2, 5.3, 5.5, 10.1, 10.2, 10.5_
 
-- [ ] 6. Implement background job workers for GitHub data processing
+- [x] 6. Implement background job workers for GitHub data processing
   - Create ImportStudentsJob for username validation and profile fetching
   - Build RefreshCommitsJob for periodic commit data updates
   - Implement VerifyPagesReposJob for repository verification
@@ -47,7 +47,7 @@
   - Write integration tests for all job workers with GitHub API mocking
   - _Requirements: 3.3, 3.4, 4.2, 4.3, 4.4, 5.2, 5.3, 5.5, 10.1, 10.3, 10.4_
 
-- [ ] 7. Create class management LiveView with real-time features
+- [x] 7. Create class management LiveView with real-time features
   - Build ClassLive module with mount, handle_params, and render functions
   - Implement class creation form with live validation
   - Add PubSub subscriptions for real-time student and commit updates
@@ -56,7 +56,7 @@
   - Write LiveView tests for mounting, events, and real-time updates
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 7.1, 7.2, 7.3, 7.4, 8.1, 8.2, 8.3_
 
-- [ ] 8. Build student import LiveView with live progress tracking
+- [x] 8. Build student import LiveView with live progress tracking
   - Create ImportLive module with real-time username parsing and validation
   - Implement live preview of detected usernames with validation feedback
   - Add import progress tracking with real-time progress bars
